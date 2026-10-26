@@ -1,0 +1,9 @@
+node_modules/
+dist/
+target/
+.idea/
+*.iml
+frontend/.env.local
+*.log
+.maven-cache/
+*.tsbuildinfo

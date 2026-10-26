@@ -1,0 +1,7 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: campus-loop
+  jackson:
+    default-property-inclusion: always

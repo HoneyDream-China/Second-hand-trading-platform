@@ -1,0 +1,27 @@
+package edu.campus.loop.common;
+
+import java.util.UUID;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+
+@RestControllerAdvice
+public class ApiExceptionHandler {
+    @ExceptionHandler(BusinessNotImplementedException.class)
+    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
+    public ApiResponse<Void> notImplemented(BusinessNotImplementedException exception) {
+        return new ApiResponse<>("NOT_IMPLEMENTED", exception.getMessage(), null, UUID.randomUUID().toString());
+    }
+
+    @ExceptionHandler({MethodArgumentNotValidException.class, HandlerMethodValidationException.class,
+            MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> validation(Exception exception) {
+        return new ApiResponse<>("VALIDATION_ERROR", "请求参数格式不正确", null, UUID.randomUUID().toString());
+    }
+}

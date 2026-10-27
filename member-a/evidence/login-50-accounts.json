@@ -1,0 +1,11 @@
+{
+  "maxMs" : 1080.8148,
+  "scenario" : "login-50-accounts",
+  "concurrency" : 50,
+  "totalMs" : 1080.9265,
+  "statuses" : {
+    "200" : 50
+  },
+  "p50Ms" : 893.2311,
+  "p95Ms" : 983.1411
+}

@@ -3,7 +3,7 @@ import React from 'react';
 import { userApi, UserApiError } from './api';
 import { DEMO, setToken } from '../../shared/request';
 import { useApp } from '../../shared/AppContext';
-import { Icon, intro, formValue } from '../../shared/ui';
+import { intro, formValue } from '../../shared/ui';
 import type { User } from '../../types';
 import './user.css';
 
@@ -69,7 +69,6 @@ export function UserPages({ runtime, demo = false, standalone = false }: {
     if (route === '/login' || route === '/register') {
         const register = route === '/register';
         return <main className="auth wrap">
-            <Icon name="loop"/>
             {intro('CAMPUS LOOP · 用户中心', register ? '开始你的校园循环。' : '欢迎回到校园循环。', register ? '创建账号，开始管理你的校园身份。' : '登录后管理个人资料与账号安全。')}
             <form key={route} className="narrow-form" onSubmit={e => authenticate(e, register)}>
                 <label>校园账号<input autoComplete="username" name="account" required minLength={3} maxLength={64} pattern="[A-Za-z0-9_.\-]+" placeholder="3–64 位字母、数字、下划线、点或短横线"/></label>
@@ -81,7 +80,7 @@ export function UserPages({ runtime, demo = false, standalone = false }: {
                 </>}
                 <button className="button full" disabled={loading}>{loading ? '正在处理…' : register ? '创建账号' : '登录'}</button>
             </form>
-            <p>{register ? '已有账号？' : '还没有校园账号？'} <a className="text-link" href={register ? '#/login' : '#/register'}>{register ? '立即登录' : '创建一个'} ›</a></p>
+            <p className="auth-links">{register ? '已有账号？' : '还没有校园账号？'} <a className="text-link" href={register ? '#/login' : '#/register'}>{register ? '立即登录' : '创建一个'} ›</a></p>
             <p className="fine-print">{demo ? '当前为前端演示，密码不会保存或校验。' : '账号不区分大小写。密码中的空格会保留，请妥善保管。'}</p>
         </main>;
     }

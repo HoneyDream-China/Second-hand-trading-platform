@@ -12,6 +12,8 @@
 .account-forms{display:grid;grid-template-columns:1fr 1fr;gap:100px;padding-top:40px}
 .account-forms h2{font-size:25px;letter-spacing:-.04em}
 .account-forms>section>p{font-size:13px;margin-bottom:30px}
+.user-session{flex:2;margin:0;font-size:14px;color:#6e6e73}
+.user-nav-label{flex:1;color:#6e6e73;font-size:12px}
 @media(max-width:800px){.account-forms{gap:45px}
 }
 @media(max-width:540px){.auth .page-intro h1{font-size:29px}

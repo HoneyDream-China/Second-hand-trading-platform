@@ -3,7 +3,8 @@ import React from 'react';
 import { userApi, UserApiError } from './api';
 import { DEMO, setToken } from '../../shared/request';
 import { useApp } from '../../shared/AppContext';
-import { intro, formValue } from '../../shared/ui';
+import { formValue } from '../../shared/ui';
+import { UserHeading } from './UserHeading';
 import type { User } from '../../types';
 import './user.css';
 
@@ -68,8 +69,8 @@ export function UserPages({ runtime, demo = false, standalone = false }: {
     };
     if (route === '/login' || route === '/register') {
         const register = route === '/register';
-        return <main className="auth wrap">
-            {intro('CAMPUS LOOP · 用户中心', register ? '开始你的校园循环。' : '欢迎回到校园循环。', register ? '创建账号，开始管理你的校园身份。' : '登录后管理个人资料与账号安全。')}
+        return <main className="auth wrap user-surface">
+            <UserHeading section={register ? '创建账号' : '用户中心'} title={<>{register ? '开始你的校园' : '欢迎回到校园'}<span className="user-title-accent">循环<span className="user-title-orbit" aria-hidden="true"/></span></>} description={register ? '创建账号，让好物的下一站从这里开始。' : '登录你的账号，让每一次闲置都有新的可能。'}/>
             <form key={route} className="narrow-form" onSubmit={e => authenticate(e, register)}>
                 <label>校园账号<input autoComplete="username" name="account" required minLength={3} maxLength={64} pattern="[A-Za-z0-9_.\-]+" placeholder="3–64 位字母、数字、下划线、点或短横线"/></label>
                 {register && <label>昵称<input name="nickname" required maxLength={64} autoComplete="nickname"/></label>}
@@ -84,9 +85,9 @@ export function UserPages({ runtime, demo = false, standalone = false }: {
             <p className="fine-print">{demo ? '当前为前端演示，密码不会保存或校验。' : '账号不区分大小写。密码中的空格会保留，请妥善保管。'}</p>
         </main>;
     }
-    if (!user) return <main className="empty"><h1>登录你的校园账号。</h1><p>登录后可查看和修改个人资料。</p><a className="button" href="#/login">前往登录</a></main>;
-    return <main className="wrap account">
-        {intro('个人中心', `你好，${user.nickname}。`, '管理你的校园身份，让每次登录更安心。')}
+    if (!user) return <main className="empty user-surface"><h1>登录你的校园账号。</h1><p>登录后可查看和修改个人资料。</p><a className="button" href="#/login">前往登录</a></main>;
+    return <main className="wrap account user-surface">
+        <UserHeading section="个人中心" title={<>你好，<span className="user-title-accent">{user.nickname}</span></>} description="管理你的校园身份，让每次登录更安心。"/>
         <div className="account-links">
             {!standalone && <><a href="#/manage">我的发布 <span>↗</span></a><a href="#/trades">我的交易 <span>↗</span></a></>}
             {standalone && <p className="user-session">账号：{user.account} · 状态：正常</p>}

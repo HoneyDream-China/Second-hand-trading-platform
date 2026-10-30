@@ -1,4 +1,27 @@
 /* 成员 A 用户页：参照 Apple 官方网站的窄导航、居中标题、充足留白和蓝色胶囊操作。 */
+.user-surface{position:relative;isolation:isolate}
+.user-surface::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,#fff3,#fff5 35%,#fff5 65%,#fff3),url('./assets/campus-loop-background.jpg') center/cover no-repeat}
+.user-standalone-shell{min-height:100vh}
+.auth.user-surface{min-height:calc(100svh - 48px)}
+.user-intro h1{font-family:"PingFang SC","Microsoft YaHei",sans-serif;text-wrap:balance}
+.user-intro .user-eyebrow{display:inline-flex;align-items:center;justify-content:center;gap:12px;letter-spacing:.15em!important;font-size:11px!important;font-weight:600!important;color:#505b5b!important}
+.user-loop-mark{display:inline-block;color:#087b80;font-size:22px;line-height:1;transition:transform .6s}
+.user-intro:hover .user-loop-mark{transform:rotate(90deg)}
+.user-eyebrow-divider{width:1px;height:11px;background:#73848466}
+.user-title-accent{position:relative;display:inline-block;max-width:100%;overflow-wrap:anywhere;color:#087b80;letter-spacing:-.055em}
+.user-title-orbit{position:absolute;left:-5%;right:-5%;height:.13em;bottom:-.1em;border:2px solid #148c804d;border-top:0;border-radius:0 0 50% 50%;transform:rotate(-5deg);pointer-events:none}
+.user-title-stop{color:#087b80}
+.user-local-brand{letter-spacing:.07em}
+.user-local-brand::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#087b80;margin:0 9px 2px 0}
+.user-local-nav a[aria-current="page"]{color:#087b80;text-decoration:underline;text-underline-offset:7px;text-decoration-thickness:1px}
+.user-surface .narrow-form input,.user-surface .account-forms input{background:#fffffff0;border-color:#747e7e80}
+.user-surface .account-links,.user-surface .account-forms>section+section{border-color:#74818145}
+.user-standalone-shell .user-standalone-footer{background:#ffffffbd;backdrop-filter:blur(12px)}
+.user-surface .narrow-form label,.user-surface .account-forms label{font-weight:500;letter-spacing:.035em}
+.user-surface .page-intro{animation:user-intro-in .55s ease-out both}
+@keyframes user-intro-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.user-surface .page-intro{animation:none}.user-loop-mark{transition:none}}
+@media(max-width:700px){.user-surface::before{background-color:#faf8f3;background-image:linear-gradient(#ffffffc9,#ffffff38),url('./assets/campus-loop-background.jpg');background-position:center,center bottom;background-size:auto,100% auto;background-repeat:no-repeat}.user-intro .user-eyebrow{gap:9px;letter-spacing:.1em!important}}
 .user-local-nav{height:48px;position:sticky;top:0;z-index:20;background:#ffffffeb;backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid #00000012}
 .user-local-nav nav{max-width:980px;height:100%;margin:auto;padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:30px}
 .user-local-nav a{font-size:12px;color:#333336;white-space:nowrap;padding:8px 0}

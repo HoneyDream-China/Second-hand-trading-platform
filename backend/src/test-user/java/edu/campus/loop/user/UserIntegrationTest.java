@@ -116,7 +116,7 @@ class UserIntegrationTest {
     @Test void twoUsersCannotModifyEachOthersProfileOrAccountStatus() throws Exception {
         register("alice");register("bob");String alice=login("alice"), bob=login("bob");
         long bobId=data(call("GET","/users/me",null,bob)).path("id").asLong();
-        var changed=call("PUT","/users/me",Map.of("nickname","Alice","phone","123","avatarUrl","","id",bobId,"status","DISABLED","account","hacked"),alice);
+        var changed=call("PUT","/users/me",Map.of("nickname","Alice","phone","13800138000","avatarUrl","","id",bobId,"status","DISABLED","account","hacked"),alice);
         assertThat(changed.statusCode()).isEqualTo(200);
         assertThat(data(changed).path("account").asText()).isEqualTo("alice");
         assertThat(data(changed).path("status").asText()).isEqualTo("ACTIVE");
@@ -128,6 +128,52 @@ class UserIntegrationTest {
             assertThat(call("PUT","/users/me",Map.of("nickname","同学","avatarUrl",avatar),token).statusCode()).isEqualTo(400);
         assertThat(call("PUT","/users/me",Map.of("nickname"," "),token).statusCode()).isEqualTo(400);
         assertThat(call("PUT","/users/me",Map.of("nickname","新昵称","avatarUrl","https://example.com/a.png","phone",""),token).statusCode()).isEqualTo(200);
+    }
+    @Test void invalidPhoneRegistrationDoesNotCreateAnAccount() throws Exception {
+        for (String phone : List.of("abc-not-a-phone", "123", "12800138000", "138001380000", "1380013800a", "   ")) {
+            var response = call("POST", "/auth/register", Map.of("account", "phone_invalid", "password", PASSWORD, "nickname", "同学", "phone", phone), null);
+            assertThat(response.statusCode()).isEqualTo(400);
+            assertThat(json.readTree(response.body()).path("message").asText()).isEqualTo("请输入11位中国大陆手机号，或留空");
+        }
+        long count = database.read(c -> { try (var s=c.createStatement(); var r=s.executeQuery("SELECT COUNT(*) FROM users")) { r.next(); return r.getLong(1); } });
+        assertThat(count).isZero();
+    }
+    @Test void validAndOptionalPhonesCanBeRegistered() throws Exception {
+        int index = 0;
+        for (String phone : List.of("", "13800138000", "19900199000")) {
+            var response = call("POST", "/auth/register", Map.of("account", "phone_" + index++, "password", PASSWORD, "nickname", "同学", "phone", phone), null);
+            assertThat(response.statusCode()).isEqualTo(200);
+            assertThat(data(response).path("phone").asText()).isEqualTo(phone);
+        }
+        // 未提供和显式 null 同样是选填，不会使旧客户端请求失效。
+        register("phone_omitted");
+        var body = new java.util.HashMap<String, Object>(Map.of("account", "phone_null", "password", PASSWORD, "nickname", "同学"));
+        body.put("phone", null);
+        assertThat(call("POST", "/auth/register", body, null).statusCode()).isEqualTo(200);
+    }
+    @Test void invalidPhoneUpdatePreservesProfileAndValidPhoneCanBeCleared() throws Exception {
+        register("student"); String token = login("student");
+        var saved = call("PUT", "/users/me", Map.of("nickname", "原昵称", "phone", "13800138000"), token);
+        assertThat(saved.statusCode()).isEqualTo(200);
+        for (String phone : List.of("abc-not-a-phone", "123", "12800138000", "138001380000", "1380013800a", "   ")) {
+            assertThat(call("PUT", "/users/me", Map.of("nickname", "不应保存", "phone", phone), token).statusCode()).isEqualTo(400);
+        }
+        var unchanged = data(call("GET", "/users/me", null, token));
+        assertThat(unchanged.path("nickname").asText()).isEqualTo("原昵称");
+        assertThat(unchanged.path("phone").asText()).isEqualTo("13800138000");
+        var cleared = call("PUT", "/users/me", Map.of("nickname", "原昵称", "phone", ""), token);
+        assertThat(cleared.statusCode()).isEqualTo(200);
+        assertThat(data(cleared).path("phone").asText()).isEmpty();
+    }
+    @Test void blankNicknameHasAnExplicitMessageForRegistrationAndUpdate() throws Exception {
+        var response = call("POST", "/auth/register", Map.of("account", "blank_name", "password", PASSWORD, "nickname", "   "), null);
+        assertThat(response.statusCode()).isEqualTo(400);
+        assertThat(json.readTree(response.body()).path("message").asText()).isEqualTo("昵称不能为空");
+        register("student"); String token = login("student");
+        var update = call("PUT", "/users/me", Map.of("nickname", "   "), token);
+        assertThat(update.statusCode()).isEqualTo(400);
+        assertThat(json.readTree(update.body()).path("message").asText()).isEqualTo("昵称不能为空");
+        assertThat(data(call("GET", "/users/me", null, token)).path("nickname").asText()).isEqualTo("同学");
     }
     @Test void logoutRevokesOnlyCurrentTokenAndIsIdempotent() throws Exception {
         register("student");String one=login("student"),two=login("student");

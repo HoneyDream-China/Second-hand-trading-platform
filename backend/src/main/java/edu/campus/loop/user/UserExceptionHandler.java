@@ -33,8 +33,14 @@ public class UserExceptionHandler {
     }
     @ExceptionHandler({MethodArgumentNotValidException.class, HttpMessageNotReadableException.class,
             ConstraintViolationException.class})
-    ResponseEntity<ApiResponse<Void>> validation(Exception ignored, HttpServletRequest request) {
-        return ResponseEntity.badRequest().body(new ApiResponse<>("VALIDATION_ERROR", "请求字段不符合要求", null, trace(request)));
+    ResponseEntity<ApiResponse<Void>> validation(Exception failure, HttpServletRequest request) {
+        String message = "请求字段不符合要求";
+        if (failure instanceof MethodArgumentNotValidException invalid) {
+            message = invalid.getBindingResult().getFieldErrors().stream()
+                    .filter(error -> error.getField().equals("nickname") || error.getField().equals("phone"))
+                    .map(error -> error.getDefaultMessage()).findFirst().orElse(message);
+        }
+        return ResponseEntity.badRequest().body(new ApiResponse<>("VALIDATION_ERROR", message, null, trace(request)));
     }
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiResponse<Void>> unexpected(Exception failure, HttpServletRequest request) {

@@ -64,7 +64,7 @@ $env:USER_DB_URL='jdbc:h2:file:C:/campus-user-data/campus-user;MODE=PostgreSQL;D
 | PUT /users/me | nickname、可选 avatarUrl/phone | 200 + UserView |
 | PUT /users/me/password | oldPassword、newPassword | 204；全部 Token 撤销 |
 
-账号为 3–64 位字母、数字、下划线、点、短横线，不区分大小写。密码为 8–128 字符，保留空格；昵称去除首尾空白且不能为空。选填资料的空字符串和 null 均表示清空；PUT 未提供的选填字段也清空。账号、用户 ID、状态不能通过修改资料变更。
+账号为 3–64 位字母、数字、下划线、点、短横线，不区分大小写。密码为 8–128 字符，保留空格；昵称去除首尾空白且不能为空。手机号选填，填写时须为 11 位中国大陆手机号（1 开头，第二位为 3–9，剩余为数字）；格式校验不代表已验证号码归属或完成短信验证。选填资料的空字符串和 null 均表示清空；PUT 未提供的选填字段也清空。账号、用户 ID、状态不能通过修改资料变更。
 
 Token 为 32 字节安全随机数的 Base64URL 表示，默认有效期 8 小时。退出只撤销当前 Token；重复退出已知 Token 返回 204。修改密码校验旧密码，并在同一事务内修改密码和撤销该用户全部 Token，随后必须重新登录。
 

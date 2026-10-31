@@ -1,0 +1,12 @@
+{
+  "maxMs" : 834.1828,
+  "scenario" : "duplicate-register-50",
+  "concurrency" : 50,
+  "totalMs" : 834.3979,
+  "statuses" : {
+    "200" : 1,
+    "409" : 49
+  },
+  "p50Ms" : 745.3574,
+  "p95Ms" : 812.8402
+}

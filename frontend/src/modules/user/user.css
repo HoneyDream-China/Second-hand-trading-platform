@@ -1,24 +1,93 @@
-.auth{text-align:center;padding-top:55px;padding-bottom:80px}
-.auth>svg{height:42px;width:42px}
-.auth .page-intro{padding:25px 0 22px}
-.auth .page-intro h1{font-size:36px}
-.narrow-form{max-width:380px;margin:auto;text-align:left}
-.auth>p{font-size:13px;margin-top:25px}
-.narrow-form .button{margin-top:10px}
-.account{padding-bottom:90px}
-.account-links{display:flex;gap:40px;border-top:1px solid #d2d2d7;border-bottom:1px solid #d2d2d7;padding:28px 0}
-.account-links a,.account-links button{flex:1;text-align:left;font-size:17px;padding:0}
-.account-links span{float:right;color:#86868b}
-.account-forms{display:grid;grid-template-columns:1fr 1fr;gap:100px;padding-top:40px}
-.account-forms h2{font-size:25px;letter-spacing:-.04em}
-.account-forms>section>p{font-size:13px;margin-bottom:30px}
-@media(max-width:800px){.account-forms{gap:45px}
+/* 成员 A 用户页：参照 Apple 官方网站的窄导航、居中标题、充足留白和蓝色胶囊操作。 */
+.user-surface{position:relative;isolation:isolate}
+.user-surface::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,#fff3,#fff5 35%,#fff5 65%,#fff3),url('./assets/campus-loop-background.jpg') center/cover no-repeat}
+.user-standalone-shell{min-height:100vh}
+.auth.user-surface{min-height:calc(100svh - 48px)}
+.user-intro h1{font-family:"PingFang SC","Microsoft YaHei",sans-serif;text-wrap:balance}
+.user-intro .user-eyebrow{display:inline-flex;align-items:center;justify-content:center;gap:12px;letter-spacing:.15em!important;font-size:11px!important;font-weight:600!important;color:#505b5b!important}
+.user-loop-mark{display:inline-block;color:#087b80;font-size:22px;line-height:1;transition:transform .6s}
+.user-intro:hover .user-loop-mark{transform:rotate(90deg)}
+.user-eyebrow-divider{width:1px;height:11px;background:#73848466}
+.user-title-accent{position:relative;display:inline-block;max-width:100%;overflow-wrap:anywhere;color:#087b80;letter-spacing:-.055em}
+.user-title-orbit{position:absolute;left:-5%;right:-5%;height:.13em;bottom:-.1em;border:2px solid #148c804d;border-top:0;border-radius:0 0 50% 50%;transform:rotate(-5deg);pointer-events:none}
+.user-title-stop{color:#087b80}
+.user-local-brand{letter-spacing:.07em}
+.user-local-brand::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#087b80;margin:0 9px 2px 0}
+.user-local-nav a[aria-current="page"]{color:#087b80;text-decoration:underline;text-underline-offset:7px;text-decoration-thickness:1px}
+.user-surface .narrow-form input,.user-surface .account-forms input{background:#fffffff0;border-color:#747e7e80}
+.user-surface .account-links,.user-surface .account-forms>section+section{border-color:#74818145}
+.user-standalone-shell .user-standalone-footer{background:#ffffffbd;backdrop-filter:blur(12px)}
+.user-surface .narrow-form label,.user-surface .account-forms label{font-weight:500;letter-spacing:.035em}
+.user-surface .page-intro{animation:user-intro-in .55s ease-out both}
+@keyframes user-intro-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.user-surface .page-intro{animation:none}.user-loop-mark{transition:none}}
+@media(max-width:700px){.user-surface::before{background-color:#faf8f3;background-image:linear-gradient(#ffffffc9,#ffffff38),url('./assets/campus-loop-background.jpg');background-position:center,center bottom;background-size:auto,100% auto;background-repeat:no-repeat}.user-intro .user-eyebrow{gap:9px;letter-spacing:.1em!important}}
+.user-local-nav{height:48px;position:sticky;top:0;z-index:20;background:#ffffffeb;backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid #00000012}
+.user-local-nav nav{max-width:980px;height:100%;margin:auto;padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:30px}
+.user-local-nav a{font-size:12px;color:#333336;white-space:nowrap;padding:8px 0}
+.user-local-nav .user-local-brand{font-size:14px;font-weight:600;margin-right:auto}
+.user-local-nav a:hover{color:#06c}
+.user-local-nav a:focus-visible{outline:3px solid #0071e3;outline-offset:4px;border-radius:3px}
+
+.auth.wrap{max-width:none;padding:65px 24px 112px;text-align:center}
+.auth .page-intro{max-width:880px;margin:0 auto;padding:0}
+.auth .page-intro .eyebrow{font-size:14px;letter-spacing:0;font-weight:600;color:#6e6e73}
+.auth .page-intro h1{font-size:clamp(45px,6vw,68px);line-height:1.08;letter-spacing:-.045em;font-weight:650;margin:20px 0 18px}
+.auth .page-intro p{font-size:20px;line-height:1.45;color:#6e6e73;margin:0 auto;max-width:640px}
+.narrow-form{max-width:420px;margin:46px auto 0;text-align:left}
+.narrow-form label,.account-forms label{font-size:12px;line-height:1.5;color:#424245;margin:0 0 21px}
+.narrow-form input,.account-forms input{height:48px;padding:0 15px;margin-top:7px;border:1px solid #86868b;border-radius:12px;background:#fff;color:#1d1d1f;font-size:16px;transition:border-color .15s,box-shadow .15s}
+.narrow-form input:focus,.account-forms input:focus{outline:none;border-color:#0071e3;box-shadow:0 0 0 4px #0071e31f}
+.narrow-form .button,.account-forms .button{min-height:44px;padding:10px 22px;border:0;border-radius:999px;background:#0071e3;color:#fff;font-size:15px;font-weight:400}
+.narrow-form .button{width:auto;min-width:120px;display:flex;margin:29px auto 0}
+.narrow-form .button:hover,.account-forms .button:hover{background:#0077ed}
+.auth .auth-links{display:flex;justify-content:center;gap:6px;font-size:14px;margin:28px auto 0;color:#6e6e73}
+.auth .fine-print{max-width:520px;margin:28px auto 0;font-size:12px!important;color:#6e6e73}
+.text-link{color:#06c;font-size:14px}
+
+.account.wrap{max-width:980px;padding:64px 24px 112px}
+.account>.page-intro{padding:0 0 43px}
+.account>.page-intro .eyebrow{font-size:14px;letter-spacing:0}
+.account>.page-intro h1{font-size:clamp(42px,5.5vw,64px);letter-spacing:-.045em;line-height:1.08;margin:18px 0 17px}
+.account>.page-intro p{font-size:18px;margin:0;color:#6e6e73}
+.account-links{display:flex;align-items:center;gap:38px;min-height:64px;padding:0;border-top:1px solid #d2d2d7;border-bottom:1px solid #d2d2d7}
+.account-links a,.account-links>button{flex:1;text-align:left;padding:12px 0;font-size:14px;color:#06c}
+.account-links>button{color:#1d1d1f}
+.account-links span{float:right;color:#06c}
+.account-links .user-session{flex:2;font-size:13px;color:#6e6e73;margin:0}
+.account-forms{display:grid;grid-template-columns:1fr 1fr;gap:0;padding-top:43px}
+.account-forms>section{min-width:0;padding:0 42px 0 0}
+.account-forms>section+section{border-left:1px solid #d2d2d7;padding:0 0 0 42px}
+.account-forms h2{font-size:28px;line-height:1.2;font-weight:600;letter-spacing:-.025em;margin:0 0 12px}
+.account-forms>section>p{font-size:13px;line-height:1.65;color:#6e6e73;margin:0 0 28px}
+.account-forms form{margin:0}
+.account-forms input{font-size:14px}
+.account-forms form>.button{min-width:140px;margin-top:8px}
+.account-forms .button.secondary{border:1px solid #0071e3;background:transparent;color:#0071e3}
+.account-forms .button.secondary:hover{background:#0071e30d}
+.user-session{color:#6e6e73;font-size:13px}
+
+.user-standalone-footer{margin-top:0;background:#f5f5f7;color:#6e6e73;border-top:1px solid #d2d2d7;padding:22px 0 28px;font-size:12px}
+.user-standalone-footer .wrap{max-width:980px}
+.user-standalone-footer p{margin:0 0 8px;line-height:1.65}
+
+@media(max-width:700px){
+  .user-local-nav nav{gap:18px}
+  .auth.wrap{padding:51px 22px 80px}
+  .auth .page-intro h1{font-size:clamp(40px,9vw,54px)}
+  .auth .page-intro p{font-size:17px}
+  .narrow-form{margin-top:36px}
+  .account.wrap{padding:48px 22px 80px}
+  .account-forms{grid-template-columns:1fr;gap:40px}
+  .account-forms>section{padding-right:0}
+  .account-forms>section+section{border-left:0;border-top:1px solid #d2d2d7;padding:32px 0 0}
 }
-@media(max-width:540px){.auth .page-intro h1{font-size:29px}
-.auth{padding-top:35px}
-.account-links{gap:20px}
-.account-links a,.account-links button{font-size:13px}
-.account-forms{grid-template-columns:1fr;gap:30px}
+@media(max-width:430px){
+  .user-local-nav nav{padding:0 17px;gap:13px}
+  .user-local-nav a{font-size:11px}
+  .auth .page-intro h1{font-size:39px}
+  .account-links{gap:17px}
+  .account-links a,.account-links>button{font-size:12px}
 }
 
 

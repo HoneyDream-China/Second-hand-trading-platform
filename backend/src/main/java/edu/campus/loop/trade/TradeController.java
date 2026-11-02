@@ -10,8 +10,8 @@ import static edu.campus.loop.trade.TradeDtos.*;
 /**
  * 交易 HTTP 接口入口，统一路径为 /api/v1/trades。
  * <p>负责接收参数、触发请求体校验，并将服务层结果包装为 ApiResponse。
- * 身份与业务权限校验由后续业务实现负责；当前服务方法均为占位实现，
- * 会抛出 BusinessNotImplementedException，由统一异常处理返回 HTTP 501。</p>
+ * 身份与业务权限校验由服务层负责；认证、数据库或商品模块尚未接入时，
+ * 依赖调用会抛出 BusinessNotImplementedException，由统一异常处理返回 HTTP 501。</p>
  */
 @RestController
 @RequestMapping("/api/v1/trades")
@@ -38,7 +38,7 @@ public class TradeController {
     /**
      * GET /api/v1/trades：分页查询当前用户作为买家或卖家参与的交易。
      * <p>参数声明了页码、页大小范围；状态不传时不按状态筛选。
-     * 用户范围过滤需由服务层实现。</p>
+     * 用户范围过滤由服务层实现。</p>
      * @param page 页码，从 1 开始，默认 1
      * @param size 每页条数，默认 20，声明范围为 1～100
      * @param status 可选状态：PENDING、ACCEPTED、REJECTED、CANCELLED
@@ -52,7 +52,7 @@ public class TradeController {
     }
     /**
      * GET /api/v1/trades/{id}：查询单笔交易及其状态记录。
-     * @param id 交易 ID；按设计仅交易买家或卖家可查看，权限校验待实现
+     * @param id 交易 ID；按设计仅交易买家或卖家可查看，由服务层校验权限
      * @return 统一响应，data 为交易详情
      */
     @GetMapping("/{id}")
@@ -60,7 +60,7 @@ public class TradeController {
     /**
      * PATCH /api/v1/trades/{id}/accept：卖家接受待处理交易。
      * <p>预期将交易从 PENDING 改为 ACCEPTED，同时将商品标记为已售并记录日志；
-     * 这些变更需在服务层同一事务中完成，目前尚未实现。</p>
+     * 这些变更在服务层同一事务中完成。</p>
      * @param id 待接受的交易 ID
      * @return 统一响应，data 为操作后的交易详情
      */
@@ -68,7 +68,7 @@ public class TradeController {
     public ApiResponse<TradeView> accept(@PathVariable long id) { return new ApiResponse<>("OK", "success", service.accept(id), null); }
     /**
      * PATCH /api/v1/trades/{id}/reject：卖家拒绝待处理交易。
-     * <p>预期将 PENDING 改为 REJECTED 并记录日志，不修改商品状态；规则待实现。</p>
+     * <p>预期将 PENDING 改为 REJECTED 并记录日志，不修改商品状态；由服务层校验权限与状态。</p>
      * @param id 待拒绝的交易 ID
      * @return 统一响应，data 为操作后的交易详情
      */
@@ -76,7 +76,7 @@ public class TradeController {
     public ApiResponse<TradeView> reject(@PathVariable long id) { return new ApiResponse<>("OK", "success", service.reject(id), null); }
     /**
      * PATCH /api/v1/trades/{id}/cancel：买家取消自己发起的待处理交易。
-     * <p>预期将 PENDING 改为 CANCELLED 并记录日志，不修改商品状态；规则待实现。</p>
+     * <p>预期将 PENDING 改为 CANCELLED 并记录日志，不修改商品状态；由服务层校验权限与状态。</p>
      * @param id 待取消的交易 ID
      * @return 统一响应，data 为操作后的交易详情
      */

@@ -56,7 +56,7 @@ npm run dev
 
 有独立 Maven 时，也可以在 `backend` 执行 `mvn spring-boot:run` 或 `mvn package`。
 
-**按要求，所有后端业务函数均未实现。** Service 方法保留签名与 TODO，并抛出 `BusinessNotImplementedException`；合法格式的请求返回 HTTP 501 / `NOT_IMPLEMENTED`。未连接数据库，未实现认证、密码哈希、Token、持久化或交易事务。控制器映射、DTO、基础格式校验、统一异常响应和应用启动配置仅用于形成可运行的开发骨架。后续实现应替换占位方法。
+交易模块已实现 Service、JDBC 持久化、状态机、权限校验及事务流程，配置与接入方式见 [交易后端说明](docs/trade-implementation.md)。用户认证和商品模块仍为占位实现；未接入认证、数据库及商品 Facade 时，交易接口仍返回 HTTP 501 / `NOT_IMPLEMENTED`。默认无需数据库即可启动。
 
 ### 切换真实接口
 
@@ -84,7 +84,7 @@ VITE_API_MODE=server
 
 ## 后续业务实现边界
 
-成员 A 在 `user/UserService` 和 `CurrentUserContext` 实现身份逻辑；成员 B 在 `product/ProductService` 实现商品逻辑；成员 C 在 `trade/TradeService` 实现交易逻辑。跨模块通过 `UserFacade`、`ProductFacade` 调用。需遵循原设计中的乐观锁、部分唯一索引、事务加锁顺序及日志不可变要求。
+成员 A 在 `user/UserService` 和 `CurrentUserContext` 实现身份逻辑；成员 B 在 `product/ProductService` 实现商品逻辑；交易逻辑已在 `trade/TradeService` 实现，后续按 [交易后端说明](docs/trade-implementation.md) 接入认证、数据库和商品 Facade。跨模块通过 `UserFacade`、`ProductFacade` 调用。需遵循原设计中的乐观锁、部分唯一索引、事务加锁顺序及日志不可变要求。
 
 当前前端模拟不代表并发、数据库事务或访问控制已经实现。真实接口联调时还需根据最终接口补齐“我的商品”所有状态查询和完整分页加载；现有公开商品查询不应被用于绕过私有资源权限。历史 API 文件保持原样，实际联调以三份成员设计及双方确认的 DTO 为准。
 

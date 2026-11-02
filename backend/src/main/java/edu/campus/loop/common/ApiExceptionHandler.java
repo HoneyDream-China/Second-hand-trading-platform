@@ -12,6 +12,12 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+    @ExceptionHandler(BusinessException.class)
+    public org.springframework.http.ResponseEntity<ApiResponse<Void>> business(BusinessException exception) {
+        return org.springframework.http.ResponseEntity.status(exception.status()).body(
+                new ApiResponse<>(exception.code(), exception.getMessage(), null, UUID.randomUUID().toString()));
+    }
+
     @ExceptionHandler(BusinessNotImplementedException.class)
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     public ApiResponse<Void> notImplemented(BusinessNotImplementedException exception) {

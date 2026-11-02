@@ -6,7 +6,8 @@ import java.time.OffsetDateTime;
 import org.springframework.stereotype.Repository;
 
 @Repository
-final class AuthTokenRepository {
+// 与 UserRepository 一样，允许 Spring 创建仓储异常转换代理。
+class AuthTokenRepository {
     record StoredToken(long userId, OffsetDateTime expiresAt, OffsetDateTime revokedAt) { }
     StoredToken find(Connection c, String hash) throws SQLException {
         try (var s = c.prepareStatement("SELECT user_id,expires_at,revoked_at FROM auth_tokens WHERE token_hash=?")) {

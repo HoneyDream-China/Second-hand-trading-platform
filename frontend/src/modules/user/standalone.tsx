@@ -50,7 +50,7 @@ function UserStandaloneApp() {
             <a className="user-local-brand" href={user ? '#/account' : '#/login'}>校园循环</a>
             <a href="#/login" aria-current={route === '/login' ? 'page' : undefined}>登录</a>
             <a href="#/register" aria-current={route === '/register' ? 'page' : undefined}>注册</a>
-            {user && <a href="#/account" aria-current={route === '/account' ? 'page' : undefined}>个人中心</a>}
+            {user && <a href="#/account" aria-current={route === '/account' ? 'page' : undefined}>{user.avatarUrl && <img className="user-nav-avatar" src={user.avatarUrl} alt="我的头像"/>}个人中心</a>}
         </nav></header>
         {(loading || restoring) && <div role="progressbar" aria-label="正在处理" className="loading-bar"/>}
         {restoring ? <main className="empty"><p>正在恢复登录状态…</p></main> : <UserPages runtime={{ route, user, setUser, loading, go, notify, run }} standalone/>}

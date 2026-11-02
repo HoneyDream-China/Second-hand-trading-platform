@@ -4,6 +4,7 @@ import { userApi, UserApiError } from './api';
 import { DEMO, setToken } from '../../shared/request';
 import { useApp } from '../../shared/AppContext';
 import { formValue } from '../../shared/ui';
+import { AvatarUpload, circularPreview } from './AvatarUpload';
 import { UserHeading } from './UserHeading';
 import type { User } from '../../types';
 import './user.css';
@@ -25,6 +26,12 @@ export default function UserSubsystem() {
 
 // 密码必须保留原始字符，不能使用公共 formValue（它会 trim）。
 const passwordValue = (data: FormData, name: string) => String(data.get(name) ?? '');
+const phonePattern = '(?:1[3-9][0-9]{9})?';
+const phoneHint = '请输入11位中国大陆手机号，或留空';
+const validateProfile = (nickname: string, phone: string) => {
+    if (!nickname) throw new Error('昵称不能为空');
+    if (!new RegExp(`^${phonePattern}$`).test(phone)) throw new Error(phoneHint);
+};
 
 export function UserPages({ runtime, demo = false, standalone = false }: {
     runtime: UserRuntime; demo?: boolean; standalone?: boolean;
@@ -51,9 +58,11 @@ export function UserPages({ runtime, demo = false, standalone = false }: {
             const account = formValue(data, 'account');
             const password = passwordValue(data, 'password');
             const nickname = formValue(data, 'nickname');
+            const phone = formValue(data, 'phone');
+            if (register) validateProfile(nickname, phone);
             if (register && password !== passwordValue(data, 'confirmPassword')) throw new Error('两次输入的密码不一致');
             if (register && !demo) {
-                await userApi.register({ account, password, nickname, phone: formValue(data, 'phone') });
+                await userApi.register({ account, password, nickname, phone });
                 go('/login'); notify('注册成功，请使用新账号登录'); return;
             }
             if (demo) {
@@ -72,17 +81,17 @@ export function UserPages({ runtime, demo = false, standalone = false }: {
         return <main className="auth wrap user-surface">
             <UserHeading section={register ? '创建账号' : '用户中心'} title={<>{register ? '开始你的校园' : '欢迎回到校园'}<span className="user-title-accent">循环<span className="user-title-orbit" aria-hidden="true"/></span></>} description={register ? '创建账号，让好物的下一站从这里开始。' : '登录你的账号，让每一次闲置都有新的可能。'}/>
             <form key={route} className="narrow-form" onSubmit={e => authenticate(e, register)}>
-                <label>校园账号<input autoComplete="username" name="account" required minLength={3} maxLength={64} pattern="[A-Za-z0-9_.\-]+" placeholder="3–64 位字母、数字、下划线、点或短横线"/></label>
+                <label>校园账号<input autoComplete="username" name="account" required minLength={3} maxLength={16} pattern="[0-9]+" inputMode="numeric" placeholder="3–16 位纯数字"/></label>
                 {register && <label>昵称<input name="nickname" required maxLength={64} autoComplete="nickname"/></label>}
-                <label>密码<input type="password" name="password" minLength={8} maxLength={128} autoComplete={register ? 'new-password' : 'current-password'} required placeholder="8–128 位字符，区分大小写"/></label>
+                <label>密码<input type="password" name="password" minLength={8} maxLength={16} pattern="(?=.*[A-Za-z])(?=.*[0-9]).*" autoComplete={register ? 'new-password' : 'current-password'} required placeholder="8–16 位，必须包含字母和数字"/></label>
                 {register && <>
-                    <label>确认密码<input type="password" name="confirmPassword" required minLength={8} maxLength={128} autoComplete="new-password"/></label>
-                    <label>手机号（选填）<input name="phone" type="tel" maxLength={32} autoComplete="tel"/></label>
+                    <label>确认密码<input type="password" name="confirmPassword" required minLength={8} maxLength={16} pattern="(?=.*[A-Za-z])(?=.*[0-9]).*" autoComplete="new-password"/></label>
+                    <label>手机号（选填）<input name="phone" type="tel" maxLength={11} pattern={phonePattern} title={phoneHint} placeholder="11位中国大陆手机号" autoComplete="tel"/></label>
                 </>}
                 <button className="button full" disabled={loading}>{loading ? '正在处理…' : register ? '创建账号' : '登录'}</button>
             </form>
             <p className="auth-links">{register ? '已有账号？' : '还没有校园账号？'} <a className="text-link" href={register ? '#/login' : '#/register'}>{register ? '立即登录' : '创建一个'} ›</a></p>
-            <p className="fine-print">{demo ? '当前为前端演示，密码不会保存或校验。' : '账号不区分大小写。密码中的空格会保留，请妥善保管。'}</p>
+            <p className="fine-print">{demo ? '当前为前端演示，密码不会保存或校验。' : '账号为纯数字，密码须包含字母和数字，均不超过16位。'}</p>
         </main>;
     }
     if (!user) return <main className="empty user-surface"><h1>登录你的校园账号。</h1><p>登录后可查看和修改个人资料。</p><a className="button" href="#/login">前往登录</a></main>;
@@ -98,15 +107,14 @@ export function UserPages({ runtime, demo = false, standalone = false }: {
                 <form key={user.id} onSubmit={e => {
                     e.preventDefault(); const data = new FormData(e.currentTarget);
                     execute(async () => {
-                        const body = { nickname: formValue(data, 'nickname'), phone: formValue(data, 'phone'), avatarUrl: formValue(data, 'avatarUrl') };
-                        if (!body.nickname) throw new Error('昵称不能为空');
-                        if (body.avatarUrl && !/^https?:\/\//i.test(body.avatarUrl)) throw new Error('头像地址必须使用 http 或 https');
+                        const body = { nickname: formValue(data, 'nickname'), phone: formValue(data, 'phone'), avatarUrl: user.avatarUrl || '' };
+                        validateProfile(body.nickname, body.phone);
                         setUser(demo ? { ...user, ...body } : await userApi.updateUser(body)); notify('个人资料已保存');
                     });
                 }}>
                     <label>昵称<input name="nickname" required maxLength={64} defaultValue={user.nickname}/></label>
-                    <label>手机号（选填）<input name="phone" type="tel" maxLength={32} defaultValue={user.phone ?? ''}/></label>
-                    <label>头像地址（选填）<input name="avatarUrl" type="url" maxLength={512} defaultValue={user.avatarUrl ?? ''} placeholder="https://example.com/avatar.png"/></label>
+                    <label>手机号（选填）<input name="phone" type="tel" maxLength={11} pattern={phonePattern} title={phoneHint} placeholder="11位中国大陆手机号" autoComplete="tel" defaultValue={user.phone ?? ''}/></label>
+                    <AvatarUpload user={user} disabled={loading} onSelect={file => execute(async () => { setUser(demo ? { ...user, avatarUrl: await circularPreview(file) } : await userApi.avatar(file)); notify('头像已上传并自动居中裁剪'); })}/>
                     <button className="button" disabled={loading}>保存资料</button>
                 </form>
             </section>
@@ -121,9 +129,9 @@ export function UserPages({ runtime, demo = false, standalone = false }: {
                         form.reset(); clearSession(); go('/login'); notify('密码已修改，请重新登录');
                     });
                 }}>
-                    <label>当前密码<input name="oldPassword" type="password" required maxLength={128} autoComplete="current-password"/></label>
-                    <label>新密码<input name="newPassword" type="password" required minLength={8} maxLength={128} autoComplete="new-password" placeholder="8–128 位字符"/></label>
-                    <label>确认新密码<input name="confirmPassword" type="password" required minLength={8} maxLength={128} autoComplete="new-password"/></label>
+                    <label>当前密码<input name="oldPassword" type="password" required maxLength={16} pattern="(?=.*[A-Za-z])(?=.*[0-9]).*" autoComplete="current-password"/></label>
+                    <label>新密码<input name="newPassword" type="password" required minLength={8} maxLength={16} pattern="(?=.*[A-Za-z])(?=.*[0-9]).*" autoComplete="new-password" placeholder="8–16 位，包含字母和数字"/></label>
+                    <label>确认新密码<input name="confirmPassword" type="password" required minLength={8} maxLength={16} pattern="(?=.*[A-Za-z])(?=.*[0-9]).*" autoComplete="new-password"/></label>
                     <button className="button secondary" disabled={loading}>更新密码</button>
                 </form>
             </section>

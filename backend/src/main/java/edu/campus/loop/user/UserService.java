@@ -67,7 +67,7 @@ public class UserService implements UserFacade {
     public UserView updateMe(UpdateUserRequest request) {
         String hash = current.tokenHash();
         String avatar = optional(request.avatarUrl());
-        if (avatar != null) {
+        if (avatar != null && !avatar.equals(me().avatarUrl())) {
             try {
                 URI uri = URI.create(avatar);
                 if (!("https".equalsIgnoreCase(uri.getScheme()) || "http".equalsIgnoreCase(uri.getScheme()))
@@ -78,6 +78,13 @@ public class UserService implements UserFacade {
         return database.transaction(c -> {
             var user = current.require(c, hash, true).view();
             return users.update(c, user.id(), requiredText(request.nickname()), finalAvatar, optional(request.phone()));
+        });
+    }
+    public UserView updateAvatar(String avatar) {
+        String hash = current.tokenHash();
+        return database.transaction(c -> {
+            var user = current.require(c, hash, true).view();
+            return users.update(c, user.id(), user.nickname(), avatar, optional(user.phone()));
         });
     }
     public void updatePassword(PasswordRequest request) {

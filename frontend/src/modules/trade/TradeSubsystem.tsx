@@ -23,8 +23,6 @@ export default function TradeSubsystem() {
         const item = products.find(p => p.id === trade.productId);
         if (trade.status !== 'PENDING')
             throw new Error('此交易已处理');
-        if (action === 'accept' && item?.status !== 'ON_SALE')
-            throw new Error('商品当前不可交易');
         const status = action === 'accept' ? 'ACCEPTED' : action === 'reject' ? 'REJECTED' : 'CANCELLED';
         const updated: Trade = await tradeApi.transition(trade.id, action);
         setTrades(list => list.map(t => t.id === trade.id ? updated : t));

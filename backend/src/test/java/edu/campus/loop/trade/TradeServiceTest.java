@@ -150,9 +150,15 @@ class TradeServiceTest {
         actor.set(2L);
         assertEquals(trade.id(), service.detail(trade.id()).id());
         assertEquals(1, service.list(1, 20, null).total());
+        var pending = service.list(1, 20, TradeStatus.PENDING);
+        assertEquals(1, pending.total());
+        assertEquals(trade.id(), pending.items().getFirst().id());
+        assertEquals(1, pending.items().getFirst().buyerId());
+        assertEquals(2, pending.items().getFirst().sellerId());
         actor.set(3L);
         assertCode("FORBIDDEN", () -> service.detail(trade.id()));
         assertEquals(0, service.list(1, 20, null).total());
+        assertTrue(service.list(1, 20, TradeStatus.PENDING).items().isEmpty());
         assertCode("RESOURCE_NOT_FOUND", () -> service.detail(999));
     }
 

@@ -6,7 +6,7 @@ import java.time.OffsetDateTime;
 import org.springframework.stereotype.Repository;
 
 @Repository
-final class AuthTokenRepository {
+class AuthTokenRepository {
     record StoredToken(long userId, OffsetDateTime expiresAt, OffsetDateTime revokedAt) { }
     StoredToken find(Connection c, String hash) throws SQLException {
         try (var s = c.prepareStatement("SELECT user_id,expires_at,revoked_at FROM auth_tokens WHERE token_hash=?")) {

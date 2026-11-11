@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import static edu.campus.loop.user.UserDtos.*;
 
 @Repository
-final class UserRepository {
+class UserRepository {
     record StoredUser(UserView view, String passwordHash) { }
     StoredUser byAccount(Connection c, String account) throws SQLException {
         try (var s = c.prepareStatement("SELECT * FROM users WHERE account=?")) {

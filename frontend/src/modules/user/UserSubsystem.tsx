@@ -1,10 +1,10 @@
 /** 成员 A：同一组用户页面同时用于团队应用和独立验收入口。 */
 import React from 'react';
 import { userApi, UserApiError } from './api';
-import { DEMO, setToken } from '../../shared/request';
+import { setToken } from '../../shared/request';
 import { useApp } from '../../shared/AppContext';
 import { formValue } from '../../shared/ui';
-import { AvatarUpload, circularPreview } from './AvatarUpload';
+import { AvatarUpload } from './AvatarUpload';
 import { UserHeading } from './UserHeading';
 import type { User } from '../../types';
 import './user.css';
@@ -21,7 +21,7 @@ export interface UserRuntime {
 }
 export default function UserSubsystem() {
     const app = useApp();
-    return <UserPages runtime={{ ...app, clearPrivateData: () => app.setTrades([]) }} demo={DEMO}/>;
+    return <UserPages runtime={{ ...app, clearPrivateData: () => app.setTrades([]) }}/>;
 }
 
 // 密码必须保留原始字符，不能使用公共 formValue（它会 trim）。
@@ -33,8 +33,8 @@ const validateProfile = (nickname: string, phone: string) => {
     if (!new RegExp(`^${phonePattern}$`).test(phone)) throw new Error(phoneHint);
 };
 
-export function UserPages({ runtime, demo = false, standalone = false }: {
-    runtime: UserRuntime; demo?: boolean; standalone?: boolean;
+export function UserPages({ runtime, standalone = false }: {
+    runtime: UserRuntime; standalone?: boolean;
 }) {
     const { route, user, setUser, loading, go, notify, run, clearPrivateData } = runtime;
     const clearSession = () => { setToken(''); setUser(null); clearPrivateData?.(); };
@@ -48,7 +48,7 @@ export function UserPages({ runtime, demo = false, standalone = false }: {
         }
     });
     const logout = () => execute(async () => {
-        if (!demo) await userApi.logout();
+        await userApi.logout();
         clearSession(); go('/login'); notify('已退出登录');
     });
     const authenticate = (event: React.FormEvent<HTMLFormElement>, register: boolean) => {
@@ -61,19 +61,15 @@ export function UserPages({ runtime, demo = false, standalone = false }: {
             const phone = formValue(data, 'phone');
             if (register) validateProfile(nickname, phone);
             if (register && password !== passwordValue(data, 'confirmPassword')) throw new Error('两次输入的密码不一致');
-            if (register && !demo) {
+            if (register) {
                 await userApi.register({ account, password, nickname, phone });
                 go('/login'); notify('注册成功，请使用新账号登录'); return;
             }
-            if (demo) {
-                setUser({ id: 1, account, nickname: nickname || '校园同学', phone: '', avatarUrl: '', status: 'ACTIVE' });
-            } else {
-                const result = await userApi.login({ account, password });
-                clearPrivateData?.(); setToken(result.token); setUser(result.user);
-            }
+            const result = await userApi.login({ account, password });
+            clearPrivateData?.(); setToken(result.token); setUser(result.user);
             const next = standalone ? '/account' : sessionStorage.getItem('campus-next') || '/account';
             sessionStorage.removeItem('campus-next'); go(next);
-            notify(demo ? '已进入前端演示会话' : '登录成功');
+            notify('登录成功');
         });
     };
     if (route === '/login' || route === '/register') {
@@ -91,7 +87,7 @@ export function UserPages({ runtime, demo = false, standalone = false }: {
                 <button className="button full" disabled={loading}>{loading ? '正在处理…' : register ? '创建账号' : '登录'}</button>
             </form>
             <p className="auth-links">{register ? '已有账号？' : '还没有校园账号？'} <a className="text-link" href={register ? '#/login' : '#/register'}>{register ? '立即登录' : '创建一个'} ›</a></p>
-            <p className="fine-print">{demo ? '当前为前端演示，密码不会保存或校验。' : '账号为纯数字，密码须包含字母和数字，均不超过16位。'}</p>
+            <p className="fine-print">账号为纯数字，密码须包含字母和数字，均不超过16位。</p>
         </main>;
     }
     if (!user) return <main className="empty user-surface"><h1>登录你的校园账号。</h1><p>登录后可查看和修改个人资料。</p><a className="button" href="#/login">前往登录</a></main>;
@@ -109,12 +105,12 @@ export function UserPages({ runtime, demo = false, standalone = false }: {
                     execute(async () => {
                         const body = { nickname: formValue(data, 'nickname'), phone: formValue(data, 'phone'), avatarUrl: user.avatarUrl || '' };
                         validateProfile(body.nickname, body.phone);
-                        setUser(demo ? { ...user, ...body } : await userApi.updateUser(body)); notify('个人资料已保存');
+                        setUser(await userApi.updateUser(body)); notify('个人资料已保存');
                     });
                 }}>
                     <label>昵称<input name="nickname" required maxLength={64} defaultValue={user.nickname}/></label>
                     <label>手机号（选填）<input name="phone" type="tel" maxLength={11} pattern={phonePattern} title={phoneHint} placeholder="11位中国大陆手机号" autoComplete="tel" defaultValue={user.phone ?? ''}/></label>
-                    <AvatarUpload user={user} disabled={loading} onSelect={file => execute(async () => { setUser(demo ? { ...user, avatarUrl: await circularPreview(file) } : await userApi.avatar(file)); notify('头像已上传并自动居中裁剪'); })}/>
+                    <AvatarUpload user={user} disabled={loading} onSelect={file => execute(async () => { setUser(await userApi.avatar(file)); notify('头像已上传并自动居中裁剪'); })}/>
                     <button className="button" disabled={loading}>保存资料</button>
                 </form>
             </section>
@@ -122,7 +118,6 @@ export function UserPages({ runtime, demo = false, standalone = false }: {
                 <form onSubmit={e => {
                     e.preventDefault(); const form = e.currentTarget; const data = new FormData(form);
                     execute(async () => {
-                        if (demo) { notify('演示模式不保存密码，请使用用户子系统独立入口体验真实改密'); return; }
                         const newPassword = passwordValue(data, 'newPassword');
                         if (newPassword !== passwordValue(data, 'confirmPassword')) throw new Error('两次输入的新密码不一致');
                         await userApi.password({ oldPassword: passwordValue(data, 'oldPassword'), newPassword });

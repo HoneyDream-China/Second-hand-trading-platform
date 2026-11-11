@@ -1,18 +1,12 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { api, DEMO } from '../api';
-import { seedProducts, seedTrades } from '../data';
+import { api } from '../api';
 import type { User, Product, Trade } from '../types';
-function read<T>(key: string, fallback: T): T { try {
-    return JSON.parse(sessionStorage.getItem(key) || 'null') ?? fallback;
-}
-catch {
-    return fallback;
-} }
+/** 全部数据来自后端接口；刷新页面后从服务端恢复登录态、商品和交易。 */
 function useAppState() {
     const [route, setRoute] = useState(location.hash.slice(1) || '/');
-    const [user, setUser] = useState<User | null>(() => DEMO ? read('campus-user', null) : null);
-    const [products, setProducts] = useState<Product[]>(() => DEMO ? read('campus-products', seedProducts) : []);
-    const [trades, setTrades] = useState<Trade[]>(() => DEMO ? read('campus-trades', seedTrades) : []);
+    const [user, setUser] = useState<User | null>(null);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [trades, setTrades] = useState<Trade[]>([]);
     const [notice, setNotice] = useState('');
     const [category, setCategory] = useState('全部好物');
     const [page, setPage] = useState(1);
@@ -36,17 +30,17 @@ function useAppState() {
         const timer = setTimeout(() => setNotice(''), 5000);
         return () => clearTimeout(timer);
     } }, [notice]);
-    useEffect(() => { if (DEMO) {
-        sessionStorage.setItem('campus-products', JSON.stringify(products));
-        sessionStorage.setItem('campus-trades', JSON.stringify(trades));
-        sessionStorage.setItem('campus-user', JSON.stringify(user));
-    } }, [products, trades, user]);
-    useEffect(() => { if (!DEMO)
-        void run(async () => { const result = await api.products('?size=100'); setProducts(result.items); if (sessionStorage.getItem('campus-token')) {
-            setUser(await api.me());
-            setTrades((await api.trades()).items);
-        } }); }, []);
-    useEffect(() => { if (!DEMO && /^\/product\/\d+$/.test(route))
+    useEffect(() => {
+        void run(async () => {
+            const result = await api.products('?size=100');
+            setProducts(result.items);
+            if (sessionStorage.getItem('campus-token')) {
+                setUser(await api.me());
+                setTrades((await api.trades()).items);
+            }
+        });
+    }, []);
+    useEffect(() => { if (/^\/product\/\d+$/.test(route))
         void run(async () => { const item = await api.product(Number(route.split('/')[2])); setProducts(list => [...list.filter(p => p.id !== item.id), item]); }); }, [route]);
     const guard = (path: string) => { if (user)
         go(path);

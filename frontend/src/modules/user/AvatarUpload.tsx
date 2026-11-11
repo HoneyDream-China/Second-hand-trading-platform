@@ -1,21 +1,6 @@
 import React, { useState } from 'react';
 import type { User } from '../../types';
 
-export async function circularPreview(file: File): Promise<string> {
-    const bitmap = await createImageBitmap(file);
-    try {
-        if (bitmap.width * bitmap.height > 16_000_000) throw new Error('图片不能超过1600万像素');
-        const canvas = document.createElement('canvas');
-        canvas.width = canvas.height = 256;
-        const context = canvas.getContext('2d');
-        if (!context) throw new Error('浏览器无法处理图片');
-        const side = Math.min(bitmap.width, bitmap.height);
-        context.beginPath(); context.arc(128, 128, 128, 0, Math.PI * 2); context.clip();
-        context.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, 256, 256);
-        return canvas.toDataURL('image/png');
-    } finally { bitmap.close(); }
-}
-
 export function AvatarUpload({ user, disabled, onSelect }: { user: User; disabled: boolean; onSelect: (file: File) => void }) {
     const [error, setError] = useState('');
     return <div className="user-avatar-upload">

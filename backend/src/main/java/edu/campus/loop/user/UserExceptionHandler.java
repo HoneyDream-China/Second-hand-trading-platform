@@ -45,8 +45,8 @@ public class UserExceptionHandler {
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiResponse<Void>> unexpected(Exception failure, HttpServletRequest request) {
         String trace = trace(request);
-        // 不记录请求体、密码或 Authorization。
-        LOG.error("User request failed traceId={} type={}", trace, failure.getClass().getSimpleName());
+        // 不记录请求体、密码或 Authorization；保留堆栈以便定位持久化等内部错误。
+        LOG.error("User request failed traceId={} type={}", trace, failure.getClass().getSimpleName(), failure);
         return ResponseEntity.internalServerError().body(new ApiResponse<>("INTERNAL_ERROR", "服务暂不可用，请稍后重试", null, trace));
     }
 }

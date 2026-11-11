@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { api } from '../api';
+import { subscribeTrades } from '../modules/trade/sync';
 import type { User, Product, Trade } from '../types';
 /** 全部数据来自后端接口；刷新页面后从服务端恢复登录态、商品和交易。 */
 function useAppState() {
@@ -36,10 +37,13 @@ function useAppState() {
             setProducts(result.items);
             if (sessionStorage.getItem('campus-token')) {
                 setUser(await api.me());
-                setTrades((await api.trades()).items);
             }
         });
     }, []);
+    useEffect(() => {
+        if (!user || route !== '/trades') return;
+        return subscribeTrades(setTrades, setNotice);
+    }, [user?.id, route]);
     useEffect(() => { if (/^\/product\/\d+$/.test(route))
         void run(async () => { const item = await api.product(Number(route.split('/')[2])); setProducts(list => [...list.filter(p => p.id !== item.id), item]); }); }, [route]);
     const guard = (path: string) => { if (user)

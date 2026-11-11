@@ -91,3 +91,8 @@
 }
 
 
+/* 用户上传头像，在主导航与独立入口中复用。 */
+.user-nav-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; vertical-align: middle; display: inline-block; }
+.user-avatar-preview { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; display: block; margin-bottom: 16px; }
+.user-avatar-empty { background: #e5eeeb; color: #087e80; text-align: center; line-height: 96px; font-size: 32px; }
+.user-avatar-upload { margin: 20px 0; }

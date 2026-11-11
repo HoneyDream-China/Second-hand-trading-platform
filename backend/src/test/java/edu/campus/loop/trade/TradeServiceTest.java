@@ -225,19 +225,23 @@ class TradeServiceTest {
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.code").value("FORBIDDEN"));
     }
 
-    @Test void skeletonStillStartsWithoutDatabaseOrAuthenticationImplementation() {
-        new org.springframework.boot.test.context.runner.ApplicationContextRunner()
+    @Test void integratedWebApplicationStartsWithoutTradeDatabase() {
+        new org.springframework.boot.test.context.runner.WebApplicationContextRunner()
                 .withUserConfiguration(edu.campus.loop.CampusLoopApplication.class)
-                .withClassLoader(new org.springframework.boot.test.context.FilteredClassLoader("org.h2"))
+                // 测试类路径含 H2；关闭自动数据源配置以模拟主程序未配置数据库的启动方式。
+                .withPropertyValues("spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration")
                 .run(context -> {
                     assertNull(context.getStartupFailure());
-                    assertThrows(edu.campus.loop.common.BusinessNotImplementedException.class,
-                            () -> context.getBean(TradeService.class).list(1, 20, null));
+                    // 用户模块现已接入，启动测试需要真实的 Web 上下文以注入请求代理。
+                    assertNotNull(context.getBean(TradeService.class));
+                    assertTrue(context.getBeansOfType(TradeRepository.class).isEmpty());
+                    assertTrue(org.springframework.aop.support.AopUtils.isCglibProxy(context.getBean("userRepository")));
+                    assertTrue(org.springframework.aop.support.AopUtils.isCglibProxy(context.getBean("authTokenRepository")));
                 });
     }
 
     @Test void databasePropertiesEnableSharedPersistenceBeans() {
-        new org.springframework.boot.test.context.runner.ApplicationContextRunner()
+        new org.springframework.boot.test.context.runner.WebApplicationContextRunner()
                 .withUserConfiguration(edu.campus.loop.CampusLoopApplication.class)
                 .withPropertyValues("spring.datasource.url=jdbc:h2:mem:configuration;MODE=PostgreSQL",
                         "spring.datasource.username=sa", "spring.datasource.password=")

@@ -314,6 +314,7 @@ public class ProductService implements ProductFacade {
 
     private List<String> imageUrls(List<String> imageUrls) {
         if (imageUrls == null) throw validation("图片列表不能为空");
+        if (imageUrls.size() > 9) throw validation("商品图片最多上传 9 张");
         List<String> urls = new ArrayList<>(imageUrls.size());
         for (String imageUrl : imageUrls) {
             if (imageUrl == null || imageUrl.isBlank()) throw validation("图片地址不能为空");

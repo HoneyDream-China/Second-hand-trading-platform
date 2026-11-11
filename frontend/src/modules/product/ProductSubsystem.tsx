@@ -6,6 +6,7 @@ import { Icon, intro, image, money, categories, formValue } from '../../shared/u
 import { productLabels, type Product, type ProductStatus } from '../../types';
 import { TradeRequest } from '../trade/TradeSubsystem';
 import './product.css';
+import { ProductEditor } from './ProductEditor';
 export default function ProductSubsystem() {
     const { route, user, products, setProducts, category, setCategory, page, setPage, loading, go, notify, run, guard } = useApp();
     const [keyword, setKeyword] = useState('');
@@ -20,16 +21,16 @@ export default function ProductSubsystem() {
         setProducts(list => list.map(p => p.id === item.id ? updated : p));
         notify(`商品${productLabels[status]}`);
     });
-    const submitProduct = (event: React.FormEvent<HTMLFormElement>, existing?: Product) => {
+    const submitProduct = (event: React.FormEvent<HTMLFormElement>, images: (string | File)[], existing?: Product) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
         void run(async () => {
             const price = formValue(data, 'price');
             if (!/^\d{1,10}(\.\d{1,2})?$/.test(price))
                 throw new Error('价格最多支持 10 位整数和 2 位小数');
-            const imageUrls = formValue(data, 'imageUrls').split('\n').map(v => v.trim()).filter(Boolean);
-            if (imageUrls.some(url => !/^https?:\/\//i.test(url)))
-                throw new Error('图片地址必须使用 http 或 https');
+            if (images.length > 9) throw new Error('商品图片最多上传 9 张');
+            const imageUrls: string[] = [];
+            for (const image of images) imageUrls.push(typeof image === 'string' ? image : await productApi.uploadImage(image));
             const body = { title: formValue(data, 'title'), description: formValue(data, 'description'), price: Number(price).toFixed(2), category: formValue(data, 'category'), condition: formValue(data, 'condition'), imageUrls };
             const updated: Product = existing ? await productApi.editProduct(existing.id, { ...body, version: existing.version }) : await productApi.createProduct(body);
             setProducts(list => existing ? list.map(p => p.id === existing.id ? updated : p) : [updated, ...list]);
@@ -49,7 +50,7 @@ export default function ProductSubsystem() {
             return null;
         if (route === '/publish' || route.startsWith('/edit/')) {
             const existing = route.startsWith('/edit/') ? products.find(p => p.id === detailId && p.sellerId === user.id) : undefined;
-            content = route.startsWith('/edit/') && (!existing || existing.status === 'SOLD') ? <main className="empty"><h1>此商品无法编辑。</h1><a href="#/manage">返回我的发布</a></main> : <main className="wrap form-page" key={route}>{intro('我的闲置', existing ? '好物信息，随时更新。' : '让闲置，开启下一程。', '认真描述每一处细节，让下一位主人放心心动。')}<form className="editor-form" onSubmit={e => submitProduct(e, existing)}><label>商品名称<input name="title" required maxLength={120} defaultValue={existing?.title} placeholder="给你的好物起个名字"/></label><div className="form-grid"><label>价格 / RMB<input name="price" type="number" min="0" step="0.01" max="9999999999.99" required defaultValue={existing?.price} placeholder="0.00"/></label><label>商品分类<select name="category" defaultValue={existing?.category}>{categories.slice(1).map(c => <option key={c}>{c}</option>)}</select></label><label>商品成色<select name="condition" defaultValue={existing?.condition}>{['全新', '九五新', '九成新', '八成新'].map(c => <option key={c}>{c}</option>)}</select></label></div><label>商品描述<textarea name="description" required maxLength={5000} rows={6} defaultValue={existing?.description} placeholder="使用情况、购买时间、配件，以及你想告诉下一位主人的事。"/></label><label>商品图片地址<span className="field-hint">每行一个 http / https 图片地址，按填写顺序展示。可留空使用示意图。</span><textarea name="imageUrls" rows={3} defaultValue={existing?.imageUrls.join('\n')} placeholder="https://example.com/photo.jpg"/></label><div className="form-actions"><a href="#/manage" className="text-link">取消</a><button className="button" disabled={loading}>{existing ? '保存修改' : '保存为草稿'}</button></div><p className="fine-print">发布后初始状态为草稿。你可以在“我的发布”中确认信息并上架。</p></form></main>;
+            content = route.startsWith('/edit/') && (!existing || existing.status === 'SOLD') ? <main className="empty"><h1>此商品无法编辑。</h1><a href="#/manage">返回我的发布</a></main> : <main className="wrap form-page" key={route}>{intro('我的闲置', existing ? '好物信息，随时更新。' : '让闲置，开启下一程。', '认真描述每一处细节，让下一位主人放心心动。')}<ProductEditor key={route} existing={existing} loading={loading} onSubmit={(e, images) => submitProduct(e, images, existing)}/></main>;
         }
         else if (route === '/manage')
             content = <main className="wrap">{intro('我的发布', '每一件，都有下一站。', '管理商品信息，从草稿到售出。')}<div className="section-toolbar"><span>{products.filter(p => p.sellerId === user.id).length} 件我的商品</span><a className="button" href="#/publish">发布闲置</a></div>{products.filter(p => p.sellerId === user.id).map(p => <article className="management-row" key={p.id}><a href={`#/product/${p.id}`} className="mini-art">{image(p)}</a><div><span className="status">{productLabels[p.status]}</span><h3>{p.title}</h3><p>RMB {money(p.price)} <span className="muted">· {p.condition}</span></p></div><div className="row-controls">{p.status !== 'SOLD' && <a href={`#/edit/${p.id}`} className="text-link">编辑</a>}{(p.status === 'DRAFT' || p.status === 'OFF_SHELF') && <button className="text-link" disabled={loading} onClick={() => updateStatus(p, 'ON_SALE')}>上架</button>}{p.status === 'ON_SALE' && <button className="text-link" disabled={loading} onClick={() => updateStatus(p, 'OFF_SHELF')}>下架</button>}</div></article>)}{!products.some(p => p.sellerId === user.id) && <div className="empty"><h2>闲置的下一程，从这里开始。</h2><a href="#/publish" className="text-link">发布第一件好物 ›</a></div>}</main>;

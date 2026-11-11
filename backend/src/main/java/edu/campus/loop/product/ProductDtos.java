@@ -11,11 +11,11 @@ public final class ProductDtos {
     public record CreateProductRequest(@NotBlank @Size(max=120) String title,
             @NotBlank String description, @NotNull @DecimalMin("0.00") @Digits(integer=10,fraction=2) BigDecimal price,
             @NotBlank @Size(max=64) String category, @NotBlank @Size(max=32) String condition,
-            @NotNull List<@NotBlank @Size(max=512) String> imageUrls) { }
+            @NotNull @Size(max=9) List<@NotBlank @Size(max=512) String> imageUrls) { }
     public record UpdateProductRequest(@NotBlank @Size(max=120) String title,
             @NotBlank String description, @NotNull @DecimalMin("0.00") @Digits(integer=10,fraction=2) BigDecimal price,
             @NotBlank @Size(max=64) String category, @NotBlank @Size(max=32) String condition,
-            @NotNull List<@NotBlank @Size(max=512) String> imageUrls, @NotNull @Min(0) Long version) { }
+            @NotNull @Size(max=9) List<@NotBlank @Size(max=512) String> imageUrls, @NotNull @Min(0) Long version) { }
     public record StatusRequest(@NotNull ProductStatus status, @NotNull @Min(0) Long version) { }
     public record ProductView(long id, long sellerId, String sellerName, String title,
             String description, BigDecimal price, String category, String condition,

@@ -1,6 +1,5 @@
 import React from 'react';
 import Art from './Art';
-import { DEMO } from './shared/request';
 import { useApp } from './shared/AppContext';
 import { Icon, categories } from './shared/ui';
 import UserSubsystem from './modules/user/UserSubsystem';
@@ -35,5 +34,5 @@ export default function App() {
     }
     else
         content = <main className="empty"><h1>这一页，暂时还没到站。</h1><a className="text-link" href="#/">回到首页 ›</a></main>;
-    return <>{header}{loading && <div role="progressbar" aria-label="正在处理" className="loading-bar" />}{content}<footer><div className="wrap"><p className="footer-note">{DEMO ? '前端演示模式 · 数据仅保存在当前浏览器会话中，关闭标签页后清除。商品图片为设计示意，非实物照片。' : '校园二手商品交易平台 · 请核实商品信息后当面交接。'}</p><div className="footer-main"><a className="brand" href="#/"><Icon name="loop" />校园循环</a><span>让好物，继续发光。</span><a href="#/explore">探索好物</a><button onClick={() => guard('/publish')}>发布闲置</button><button onClick={() => guard('/account')}>个人中心</button></div><div className="footer-bottom"><span>Copyright © 2026 校园循环。校园课程设计项目。</span><span>用户管理 / 商品管理 / 交易管理</span></div></div></footer>{notice && <div className="toast" role="status">{notice}<button aria-label="关闭提示" onClick={() => setNotice('')}>×</button></div>}</>;
+    return <>{header}{loading && <div role="progressbar" aria-label="正在处理" className="loading-bar" />}{content}<footer><div className="wrap"><p className="footer-note">校园二手商品交易平台 · 请核实商品信息后当面交接。</p><div className="footer-main"><a className="brand" href="#/"><Icon name="loop" />校园循环</a><span>让好物，继续发光。</span><a href="#/explore">探索好物</a><button onClick={() => guard('/publish')}>发布闲置</button><button onClick={() => guard('/account')}>个人中心</button></div><div className="footer-bottom"><span>Copyright © 2026 校园循环。校园课程设计项目。</span><span>用户管理 / 商品管理 / 交易管理</span></div></div></footer>{notice && <div className="toast" role="status">{notice}<button aria-label="关闭提示" onClick={() => setNotice('')}>×</button></div>}</>;
 }

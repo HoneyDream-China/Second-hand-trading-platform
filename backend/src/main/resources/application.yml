@@ -5,3 +5,22 @@ spring:
     name: campus-loop
   jackson:
     default-property-inclusion: always
+  # 数据源由 TradePersistenceConfiguration 显式创建（DriverManagerDataSource），
+  # 关闭 Boot 的自动数据源/事务/初始化配置，避免与项目自建 Bean 重复注册。
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
+      - org.springframework.boot.autoconfigure.sql.init.SqlInitializationAutoConfiguration
+  # 持久化数据库：H2 文件库，数据写入 backend/data 目录，重启后仍然保留。
+  # DB_CLOSE_DELAY=-1 让数据库在整个 JVM 生命周期内保持打开：
+  # 否则连接全部归还后数据库会被关闭，下一次打开时可能因文件锁无法重新获取而变为只读。
+  # 需要改用其他数据库时，覆盖 DB_URL / DB_USERNAME / DB_PASSWORD 环境变量即可。
+  datasource:
+    url: ${DB_URL:jdbc:h2:file:./data/campus-loop;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_ON_EXIT=FALSE;DB_CLOSE_DELAY=-1}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
+user:
+  auth:
+    # 登录令牌有效期（小时），修改密码后所有会话失效。
+    token-hours: 8

@@ -1,9 +1,8 @@
 /** 成员 B：商品探索、详情、发布、编辑和我的商品。 */
 import React, { useState } from 'react';
 import { productApi } from './api';
-import { DEMO } from '../../shared/request';
 import { useApp } from '../../shared/AppContext';
-import { Icon, intro, image, money, now, categories, formValue } from '../../shared/ui';
+import { Icon, intro, image, money, categories, formValue } from '../../shared/ui';
 import { productLabels, type Product, type ProductStatus } from '../../types';
 import { TradeRequest } from '../trade/TradeSubsystem';
 import './product.css';
@@ -17,7 +16,7 @@ export default function ProductSubsystem() {
     const detailId = Number(route.split('/')[2]);
     const product = products.find(p => p.id === detailId);
     const updateStatus = (item: Product, status: ProductStatus) => void run(async () => {
-        const updated = DEMO ? { ...item, status, version: item.version + 1 } : await productApi.status(item.id, { status, version: item.version });
+        const updated = await productApi.status(item.id, { status, version: item.version });
         setProducts(list => list.map(p => p.id === item.id ? updated : p));
         notify(`商品${productLabels[status]}`);
     });
@@ -32,11 +31,7 @@ export default function ProductSubsystem() {
             if (imageUrls.some(url => !/^https?:\/\//i.test(url)))
                 throw new Error('图片地址必须使用 http 或 https');
             const body = { title: formValue(data, 'title'), description: formValue(data, 'description'), price: Number(price).toFixed(2), category: formValue(data, 'category'), condition: formValue(data, 'condition'), imageUrls };
-            let updated: Product;
-            if (DEMO)
-                updated = { ...existing, ...body, id: existing?.id || Date.now(), sellerId: user!.id, sellerName: user!.nickname, art: existing?.art || 'books', status: existing?.status || 'DRAFT', version: existing ? existing.version + 1 : 0, createdAt: existing?.createdAt || now() };
-            else
-                updated = existing ? await productApi.editProduct(existing.id, { ...body, version: existing.version }) : await productApi.createProduct(body);
+            const updated: Product = existing ? await productApi.editProduct(existing.id, { ...body, version: existing.version }) : await productApi.createProduct(body);
             setProducts(list => existing ? list.map(p => p.id === existing.id ? updated : p) : [updated, ...list]);
             go('/manage');
             notify(existing ? '商品已更新' : '草稿已保存，可在我的发布中上架');

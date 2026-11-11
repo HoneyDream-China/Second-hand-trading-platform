@@ -1,6 +1,4 @@
-export const DEMO = (import.meta as unknown as {
-    env: Record<string, string>;
-}).env.VITE_API_MODE !== 'server';
+// 前端统一以真实后端接口作为唯一数据来源，不再提供浏览器本地演示模式。
 let token = sessionStorage.getItem('campus-token') || '';
 export const setToken = (value: string) => { token = value; value ? sessionStorage.setItem('campus-token', value) : sessionStorage.removeItem('campus-token'); };
 export async function request<T>(path: string, method = 'GET', body?: unknown): Promise<T> {

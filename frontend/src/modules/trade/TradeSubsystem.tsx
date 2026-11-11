@@ -1,9 +1,8 @@
 /** 成员 C：交易申请、买卖列表、状态操作和状态记录。 */
 import React, { useState } from 'react';
 import { tradeApi } from './api';
-import { DEMO } from '../../shared/request';
 import { useApp } from '../../shared/AppContext';
-import { intro, image, money, now, formValue } from '../../shared/ui';
+import { intro, image, money, formValue } from '../../shared/ui';
 import { tradeLabels, type Trade, type Product } from '../../types';
 import './trade.css';
 export function TradeRequest({ product }: {
@@ -14,7 +13,7 @@ export function TradeRequest({ product }: {
         guard(route);
         return;
     } const data = new FormData(e.currentTarget); void run(async () => { if (trades.some(t => t.productId === product.id && t.status === 'PENDING'))
-        throw new Error('此商品已有待处理交易，请等待处理'); const message = formValue(data, 'message'); const trade: Trade = DEMO ? { id: Date.now(), productId: product.id, buyerId: user.id, sellerId: product.sellerId, message, status: 'PENDING', createdAt: now(), logs: [{ status: 'PENDING', at: now() }] } : await tradeApi.createTrade({ productId: product.id, message }); setTrades(list => [trade, ...list]); go('/trades'); notify('交易申请已提交，等待卖家确认'); }); }}><label>给卖家留言 <span className="muted">（选填）</span><textarea name="message" placeholder="聊聊你希望的交接时间和地点" maxLength={500}/></label><button className="button full" disabled={loading}>申请交易</button></form>);
+        throw new Error('此商品已有待处理交易，请等待处理'); const message = formValue(data, 'message'); const trade: Trade = await tradeApi.createTrade({ productId: product.id, message }); setTrades(list => [trade, ...list]); go('/trades'); notify('交易申请已提交，等待卖家确认'); }); }}><label>给卖家留言 <span className="muted">（选填）</span><textarea name="message" placeholder="聊聊你希望的交接时间和地点" maxLength={500}/></label><button className="button full" disabled={loading}>申请交易</button></form>);
 }
 export default function TradeSubsystem() {
     const { user, products, setProducts, trades, setTrades, loading, run, notify } = useApp();
@@ -27,7 +26,7 @@ export default function TradeSubsystem() {
         if (action === 'accept' && item?.status !== 'ON_SALE')
             throw new Error('商品当前不可交易');
         const status = action === 'accept' ? 'ACCEPTED' : action === 'reject' ? 'REJECTED' : 'CANCELLED';
-        const updated: Trade = DEMO ? { ...trade, status, logs: [...trade.logs, { status, at: now() }] } : await tradeApi.transition(trade.id, action);
+        const updated: Trade = await tradeApi.transition(trade.id, action);
         setTrades(list => list.map(t => t.id === trade.id ? updated : t));
         if (action === 'accept' && item)
             setProducts(list => list.map(p => p.id === item.id ? { ...p, status: 'SOLD', version: p.version + 1 } : p));

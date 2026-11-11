@@ -54,7 +54,7 @@ function UserStandaloneApp() {
         </nav></header>
         {(loading || restoring) && <div role="progressbar" aria-label="正在处理" className="loading-bar"/>}
         {restoring ? <main className="empty"><p>正在恢复登录状态…</p></main> : <UserPages runtime={{ route, user, setUser, loading, go, notify, run }} standalone/>}
-        <footer className="user-standalone-footer"><div className="wrap"><p>用户数据由本地后端保存 · 登录有效期 8 小时 · 修改密码后所有会话失效</p><p>独立入口仅加载用户功能，可单独演示与验收。</p></div></footer>
+        <footer className="user-standalone-footer"><div className="wrap"><p>用户数据由本地后端保存 · 登录有效期 8 小时 · 修改密码后所有会话失效</p><p>独立入口仅加载用户功能，可单独运行与验收。</p></div></footer>
         {notice && <div className="toast" role="status">{notice}<button onClick={() => notify('')} aria-label="关闭提示">×</button></div>}
     </div>;
 }

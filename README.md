@@ -17,8 +17,7 @@ software/
 │  ├─ src/styles.css         公共与首页响应式样式
 │  ├─ src/Art.tsx            本地 SVG 商品示意图
 │  ├─ src/api.ts             三个模块接口的兼容汇总入口
-│  ├─ src/types.ts           类型与状态枚举
-│  └─ src/data.ts            演示数据
+│  ├─ src/types.ts          类型与状态枚举
 ├─ backend/                  IDEA 打开此 Maven 项目
 │  ├─ pom.xml
 │  └─ src/main/
@@ -44,7 +43,7 @@ npm run dev
 
 打开终端打印的地址，默认 `http://127.0.0.1:5173`。构建命令为 `npm run build`；产物在 `frontend/dist`。
 
-默认无需后端即可浏览及体验。演示登录可使用任意校园账号及至少 8 位字符的密码，例如账号 `demo`、密码 `campus123`。**演示登录不校验密码，密码不保存；这是前端交互演示，不是真实认证。** 演示数据使用 sessionStorage，关闭标签页会清除；清除浏览器的本站会话数据可恢复初始内容。
+前端不再内置演示数据：探索、发布、交易、登录等页面全部读取后端接口，请先启动后端再启动前端。首次使用请在注册页创建真实账号，账号由后端写入数据库，登录时按数据库中的密码哈希校验；刷新或重启后数据与登录态都会从服务端恢复。
 
 ### 后端：IntelliJ IDEA
 
@@ -52,21 +51,27 @@ npm run dev
 2. Project SDK / Maven Importer / Maven Runner 选择 JDK 21 或更高版本。项目编译目标为 Java 21。
 3. Maven 使用 IDEA 自带版本即可，等待依赖同步完成。
 4. 运行 `edu.campus.loop.CampusLoopApplication` 的 `main` 方法。
-5. 服务监听 `http://localhost:8080`。无需数据库即可启动。
+5. 服务监听 `http://localhost:8080`。首次启动会自动在 `backend/data` 目录创建 H2 数据库文件并建表，重启后数据保留，无需手动安装数据库。
 
 有独立 Maven 时，也可以在 `backend` 执行 `mvn spring-boot:run` 或 `mvn package`。
 
-交易模块已实现 Service、JDBC 持久化、状态机、权限校验及事务流程，配置与接入方式见 [交易后端说明](docs/trade-implementation.md)。用户认证和商品模块仍为占位实现；未接入认证、数据库及商品 Facade 时，交易接口仍返回 HTTP 501 / `NOT_IMPLEMENTED`。默认无需数据库即可启动。
+用户、商品、交易三个模块均已实现 Service、JDBC 持久化、状态机、权限校验及事务流程。用户模块提供注册、登录、登出、资料与头像修改、改密；商品模块提供草稿、上架、下架、编辑与成交售出；交易模块提供申请、接受、拒绝、取消和状态日志。接口说明见 [交易后端说明](docs/trade-implementation.md)。
 
-### 切换真实接口
+### 数据库与数据持久化
 
-将 `frontend/.env.example` 复制为 `frontend/.env.local`，设置：
+后端使用 H2 文件数据库，文件位于 `backend/data/campus-loop.mv.db`，首次启动自动建表，重启不会清空。用户、登录令牌、商品、商品图片、交易和状态日志保存在同一数据库中，并带外键约束。
 
-```dotenv
-VITE_API_MODE=server
+需要改用其他数据库（如 MySQL / PostgreSQL）时，只需覆盖环境变量，无需改动代码：
+
+```powershell
+$env:DB_URL = "jdbc:mysql://localhost:3306/campus_loop?useSSL=false&serverTimezone=Asia/Shanghai"
+$env:DB_USERNAME = "root"
+$env:DB_PASSWORD = "你的密码"
 ```
 
-重启 Vite。`/api` 由 Vite 代理到 `http://localhost:8080`；后端暂未实现时会显示“后端业务逻辑尚未实现”，不会自动伪造成功或回退演示数据。当前默认模式为 `demo`。生产环境需要额外配置 HTTPS 与 `/api` 反向代理。
+`DB_URL` 不是 H2 时不会自动建表，需要先自行执行该数据库的建表脚本。`/api` 由 Vite 代理到 `http://localhost:8080`；生产环境需要额外配置 HTTPS 与 `/api` 反向代理。
+
+> H2 是嵌入式数据库，同一时间只能由一个后端进程写入。如果 IDEA 里还留着一个旧实例，新启动的实例会因为拿不到文件锁而以只读方式打开，表现为登录、发布时报“数据库只读”。请先停止旧实例（确认 8080 端口已释放）再启动新实例。
 
 ## 已实现的前端
 
@@ -80,12 +85,12 @@ VITE_API_MODE=server
 - 交易中心：按状态/买卖角色筛选、买家取消、卖家接受/拒绝、状态记录。
 - 手机、平板、桌面布局；键盘焦点、输入校验、空状态、错误提示。
 
-演示默认用户 ID 为 1，内置一条该用户作为卖家的待处理交易，可直接体验接受/拒绝。任意演示账号共用同一角色。商品价格使用十进制字符串保存，提交时限制两位小数；后端 DTO 使用 BigDecimal。
+注册后即以该真实账号登录，商品、交易数据和登录态都会从服务端读取；账号、密码哈希与交易记录均落库，不再是浏览器内存数据。
 
 ## 后续业务实现边界
 
 成员 A 在 `user/UserService` 和 `CurrentUserContext` 实现身份逻辑；成员 B 在 `product/ProductService` 实现商品逻辑；交易逻辑已在 `trade/TradeService` 实现，后续按 [交易后端说明](docs/trade-implementation.md) 接入认证、数据库和商品 Facade。跨模块通过 `UserFacade`、`ProductFacade` 调用。需遵循原设计中的乐观锁、部分唯一索引、事务加锁顺序及日志不可变要求。
 
-当前前端模拟不代表并发、数据库事务或访问控制已经实现。真实接口联调时还需根据最终接口补齐“我的商品”所有状态查询和完整分页加载；现有公开商品查询不应被用于绕过私有资源权限。历史 API 文件保持原样，实际联调以三份成员设计及双方确认的 DTO 为准。
+前端已不再模拟数据，所有页面都通过真实接口读写数据库；并发控制（乐观锁、行锁、唯一索引）、事务边界与访问控制均由后端实现。真实接口联调时还需根据最终接口补齐“我的商品”所有状态查询和完整分页加载；现有公开商品查询不应被用于绕过私有资源权限。历史 API 文件保持原样，实际联调以三份成员设计及双方确认的 DTO 为准。
 
 当前未加入支付、物流、聊天、评论、推荐或秒杀业务。

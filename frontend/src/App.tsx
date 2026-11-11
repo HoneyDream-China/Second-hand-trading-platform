@@ -8,7 +8,14 @@ import TradeSubsystem from './modules/trade/TradeSubsystem';
 /** 公共首页、导航和路由；三个业务模块由各成员独立维护。 */
 export default function App() {
     const { route, user, notice, setNotice, loading, go, guard, setCategory, setPage } = useApp();
-    const header = <><header className="global-nav"><nav aria-label="主导航"><a className="brand" href="#/" aria-label="校园循环首页"><Icon name="loop" /><span>校园循环</span></a><a className={route === '/explore' ? 'active' : ''} href="#/explore">探索好物</a><a href="#/explore" onClick={() => { setCategory('数码设备'); setPage(1); }}>数码</a><a href="#/explore" onClick={() => { setCategory('图书教材'); setPage(1); }}>图书</a><a href="#/explore" onClick={() => { setCategory('生活好物'); setPage(1); }}>生活</a><button onClick={() => guard('/publish')}>发布闲置</button><button onClick={() => guard('/trades')}>交易中心</button><button aria-label="搜索商品" onClick={() => { go('/explore'); setTimeout(() => document.getElementById('search')?.focus(), 100); }}><Icon name="search" /></button><button aria-label="个人中心" onClick={() => guard('/account')}>{user?.avatarUrl ? <img className="user-nav-avatar" src={user.avatarUrl} alt="我的头像" /> : <Icon name="user" />}</button></nav></header><div className="announcement">让闲置流动，让校园更有可能。<a href="#/explore">发现你的下一件好物 <span>›</span></a></div></>;
+    const header = <><header className="global-nav"><nav aria-label="主导航">
+        <a className="brand" href="#/" aria-label="校园循环首页"><Icon name="loop" /><span>校园循环</span></a>
+        <a className={route === '/explore' ? 'active' : ''} aria-current={route === '/explore' ? 'page' : undefined} href="#/explore">探索好物</a>
+        <button className={route === '/publish' ? 'active' : ''} aria-current={route === '/publish' ? 'page' : undefined} onClick={() => guard('/publish')}>发布闲置</button>
+        <button className={route === '/trades' ? 'active' : ''} aria-current={route === '/trades' ? 'page' : undefined} onClick={() => guard('/trades')}>交易中心</button>
+        <button className="nav-icon" aria-label="搜索商品" onClick={() => { go('/explore'); setTimeout(() => document.getElementById('search')?.focus(), 100); }}><Icon name="search" /></button>
+        <button className={`nav-icon${route === '/account' ? ' active' : ''}`} aria-current={route === '/account' ? 'page' : undefined} aria-label="个人中心" onClick={() => guard('/account')}>{user?.avatarUrl ? <img className="user-nav-avatar" src={user.avatarUrl} alt="我的头像" /> : <Icon name="user" />}</button>
+    </nav></header><div className="announcement">让闲置流动，让校园更有可能。<a href="#/explore">发现你的下一件好物 <span>›</span></a></div></>;
     let content: React.ReactNode;
     if (route === '/')
         content = <>

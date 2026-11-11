@@ -12,6 +12,11 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+    public ApiResponse<Void> uploadTooLarge() {
+        return new ApiResponse<>("VALIDATION_ERROR", "上传文件过大，商品图片每张不能超过 5MB", null, UUID.randomUUID().toString());
+    }
     @ExceptionHandler(BusinessException.class)
     public org.springframework.http.ResponseEntity<ApiResponse<Void>> business(BusinessException exception) {
         return org.springframework.http.ResponseEntity.status(exception.status()).body(

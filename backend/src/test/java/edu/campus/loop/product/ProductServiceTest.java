@@ -129,6 +129,24 @@ class ProductServiceTest {
         assertEquals("DRAFT", jdbc.queryForObject("SELECT status FROM products", String.class));
     }
 
+    @Test void enforcesNineImageLimitAndPreservesCoverOnCreateAndEdit() {
+        List<String> images = java.util.stream.IntStream.range(0, 9)
+                .mapToObj(i -> "/api/v1/products/images/photo-" + i + ".png").toList();
+        ProductView product = service.create(new CreateProductRequest("多图商品", "描述", new BigDecimal("1.00"),
+                "生活好物", "九成新", images));
+        assertEquals(images, service.detail(product.id()).imageUrls());
+        var tooMany = new java.util.ArrayList<>(images);
+        tooMany.add("/api/v1/products/images/tenth.png");
+        assertCode("VALIDATION_ERROR", () -> service.create(new CreateProductRequest("多图商品", "描述", new BigDecimal("1.00"),
+                "生活好物", "九成新", tooMany)));
+        assertCode("VALIDATION_ERROR", () -> service.update(product.id(), new UpdateProductRequest("多图商品", "描述", new BigDecimal("1.00"),
+                "生活好物", "九成新", tooMany, product.version())));
+        var remaining = images.subList(1, images.size());
+        service.update(product.id(), new UpdateProductRequest("多图商品", "描述", new BigDecimal("1.00"),
+                "生活好物", "九成新", remaining, product.version()));
+        assertEquals(remaining, service.detail(product.id()).imageUrls());
+    }
+
     @Test void updateRequiresOwnerVersionAndNonSoldProduct() {
         ProductView product = create();
         ProductView updated = service.update(product.id(), new UpdateProductRequest("新标题", "新描述",

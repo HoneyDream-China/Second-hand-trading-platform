@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 import static edu.campus.loop.user.UserDtos.*;
 
 @Repository
-// 主项目启用 JDBC 异常转换后会创建 CGLIB 子类代理，仓储类不能声明为 final。
 class UserRepository {
     record StoredUser(UserView view, String passwordHash) { }
     StoredUser byAccount(Connection c, String account) throws SQLException {

@@ -12,8 +12,8 @@ async function request<T>(path: string, method = 'GET', body?: unknown): Promise
     let response: Response;
     try {
         response = await fetch(`/api/v1${path}`, {
-            method, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-            ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+            method, headers: { ...(body instanceof FormData ? {} : { 'Content-Type': 'application/json' }), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+            ...(body === undefined ? {} : { body: body instanceof FormData ? body : JSON.stringify(body) }),
             signal: AbortSignal.timeout(30_000),
         });
     } catch { throw new UserApiError('无法连接用户服务，请确认后端已启动后重试', 0, 'NETWORK_ERROR'); }
@@ -32,5 +32,6 @@ export const userApi = {
     logout: () => request<void>('/auth/logout', 'POST'),
     me: () => request<User>('/users/me'),
     updateUser: (body: ProfileInput) => request<User>('/users/me', 'PUT', body),
+    avatar: (file: File) => { const body = new FormData(); body.append('file', file); return request<User>('/users/me/avatar', 'POST', body); },
     password: (body: PasswordInput) => request<void>('/users/me/password', 'PUT', body),
 };
